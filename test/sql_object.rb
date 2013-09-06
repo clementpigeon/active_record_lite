@@ -27,10 +27,8 @@ c = Cat.new(:name => "Gizmo", :owner_id => 1)
 # puts c
 # p Cat.all
 
-c.create
-#
-# p Cat.all
+print Cat.all
 # p Cat.find(1)
 #
 #
-# c.save # update
+# c.update
