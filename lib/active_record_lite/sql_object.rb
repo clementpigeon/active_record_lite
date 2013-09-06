@@ -10,6 +10,7 @@ require 'debugger'
 class SQLObject < MassObject
 
   extend Searchable
+  extend Associatable
 
   def self.set_table_name(table_name)
     # let the user specify the table on which to execute queries for this clas.
@@ -25,7 +26,6 @@ class SQLObject < MassObject
       model_name = ActiveSupport::Inflector.pluralize(model_name)
       return model_name
     end
-
   end
 
   def self.all

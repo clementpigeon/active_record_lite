@@ -11,7 +11,32 @@ class AssocParams
 end
 
 class BelongsToAssocParams < AssocParams
-  def initialize(name, params)
+
+  attr_accessor :other_class_name, :other_class_name, :primary_key, :foreign_key, :other_class, :other_table_name
+
+  def initialize(association_name, settings)
+
+    if settings[:class_name]
+      @other_class_name = settings[:class_name]
+    else
+      @other_class_name = ActiveSupport::Inflector.camelize(association_name)
+    end
+
+    if settings[:primary_key]
+      @primary_key = settings[:primary_key]
+    else
+      @primary_key = 'id'
+    end
+
+    if settings[:foreign_key]
+      @foreign_key = settings[:primary_key]
+    else
+      @foreign_key = association_name.to_s + '_id'
+    end
+
+    @other_class = ActiveSupport::Inflector.constantize(@other_class_name)
+    @other_table_name = @other_class.table_name
+
   end
 
   def type
@@ -26,11 +51,24 @@ class HasManyAssocParams < AssocParams
   end
 end
 
+
 module Associatable
   def assoc_params
   end
 
   def belongs_to(name, params = {})
+    aps = BelongsToAssocParams.new(name, params)
+
+    define_method(name) do
+
+      result = DBConnection.execute(<<-SQL, id)
+      SELECT #{aps.other_table_name}.*
+      FROM #{aps.other_table_name} JOIN #{self.class.table_name}
+      ON #{aps.other_table_name}.#{aps.primary_key} = #{self.class.table_name}.#{aps.foreign_key}
+      WHERE #{self.class.table_name}.#{aps.primary_key} = ?
+      SQL
+      aps.other_class.parse_all(result).first
+    end
   end
 
   def has_many(name, params = {})
