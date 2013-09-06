@@ -32,6 +32,8 @@ class MassObject
   end
 
   def self.parse_all(results)
+    results.map { |result| self.new(result) }
+
   end
 
   def initialize(params = {})

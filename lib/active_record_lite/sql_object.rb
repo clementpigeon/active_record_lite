@@ -9,6 +9,8 @@ require 'debugger'
 
 class SQLObject < MassObject
 
+  extend Searchable
+
   def self.set_table_name(table_name)
     # let the user specify the table on which to execute queries for this clas.
     # We should store the table name in a class instance variable.
@@ -31,9 +33,8 @@ class SQLObject < MassObject
     SELECT *
     FROM #{table_name}
     SQL
-    rows.map do |row|
-      self.new(row)
-    end
+
+    self.parse_all(rows)
   end
 
   def self.find(id)
@@ -83,8 +84,4 @@ class SQLObject < MassObject
     result = DBConnection.execute(query, *values_list)
   end
 
-
-
-  def attribute_values
-  end
 end

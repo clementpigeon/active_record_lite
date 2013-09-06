@@ -7,13 +7,15 @@ DBConnection.open(cats_db_file_name)
 
 class Cat < SQLObject
   set_table_name("cats")
-  set_attrs(:id, :name, :owner_id)
+  my_attr_accessible(:id, :name, :owner_id)
 end
 
 class Human < SQLObject
   set_table_name("humans")
-  set_attrs(:id, :fname, :lname, :house_id)
+  my_attr_accessible(:id, :fname, :lname, :house_id)
 end
 
-p Cat.where(:name => "Breakfast")
-p Human.where(:fname => "Matt", :house_id => 1)
+# p Cat.all.count
+p Cat.where(:name => "dinner", :owner_id => 92)
+# p Cat.where(:name => "Gizmo").count
+# p Human.where(:fname => "Matt", :house_id => 1)
