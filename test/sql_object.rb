@@ -22,13 +22,27 @@ end
 # p Human.all
 
 
-c = Cat.new(:name => "Gizmo", :owner_id => 1)
+# c = Cat.new(:name => "Gizmo", :owner_id => 1)
+# #
+# # puts c
+# # p Cat.all
 #
-# puts c
-# p Cat.all
-
-print Cat.all
-# p Cat.find(1)
-#
+# print Cat.all
+# cat1 = Cat.find(1)
+# cat1.name = 'dinner'
+# cat1.update
+# p cat1
+# #
 #
 # c.update
+# p Cat.all
+p cat1 = Cat.all.first
+cat1.owner_id = 92
+cat1.save
+# p cat1
+p Cat.all.first
+
+p Cat.all.last
+new_cat = Cat.new(name: 'bob', owner_id: 91)
+new_cat.save
+p Cat.all.last

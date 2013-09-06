@@ -3,7 +3,7 @@ require_relative './db_connection'
 require_relative './mass_object'
 require_relative './searchable'
 require 'active_support/inflector'
-
+require 'debugger'
 
 
 
@@ -46,39 +46,44 @@ class SQLObject < MassObject
     self.new(result.first)
   end
 
+  def save
+    if self.id.nil?
+      create
+    else
+      update
+    end
+  end
+
+  private
+
   def create
     attributes = self.class.accessible_attributes
+    attributes = attributes.dup
     attributes.delete(:id)
     attr_list = attributes.join(', ')
     question_marks = Array.new(attributes.count) {'?'}.join(', ')
-    p values_list = attributes.map { |attr| self.send(attr) }
+    values_list = attributes.map { |attr| self.send(attr) }
 
     result = DBConnection.execute(<<-SQL, *values_list)
       INSERT INTO #{self.class.table_name} (#{attr_list})
       VALUES (#{question_marks})
-
     SQL
 
     self.id = DBConnection.last_insert_row_id
   end
 
   def update
+    # debugger
     attributes = self.class.accessible_attributes
-    attributes.delete(:id)
-    p set_line = attributes.map{ |attr| "#{attr_name} = ?" }.join(', ')
-    p values_list = attributes.map { |attr| self.send(attr) }
-
+    set_line = attributes.map{ |attr| "#{attr} = ?" }.join(', ')
+    values_list = attributes.map { |attr| self.send(attr) }
 
     query = "UPDATE #{self.class.table_name} SET " + set_line + " WHERE id = #{id}"
 
     result = DBConnection.execute(query, *values_list)
-
-
-
   end
 
-  def save
-  end
+
 
   def attribute_values
   end
