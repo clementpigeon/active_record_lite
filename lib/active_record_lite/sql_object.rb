@@ -47,9 +47,17 @@ class SQLObject < MassObject
   end
 
   def create
+
+    # the problem is that attributes has an idea, so I have to make sure taht they are ignored.
+
+    attributes = self.class.accessible_attributes
+    p attr_list = attributes.join(', ')
+    p question_marks = Array.new(attributes.count) {'?'}.join(', ')
+    p values_list = attributes.map { |attr| self.send(attr) }
+
     result = DBConnection.execute(<<-SQL, *attr)
-    INSERT INTO #{table_name}
-    VALUES
+      INSERT INTO #{self.class.table_name} (#{attr_list})
+      VALUES (#{question_marks})
 
     SQL
 
@@ -57,6 +65,9 @@ class SQLObject < MassObject
   end
 
   def update
+
+
+
   end
 
   def save

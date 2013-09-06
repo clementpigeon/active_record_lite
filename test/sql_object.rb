@@ -27,10 +27,10 @@ c = Cat.new(:name => "Gizmo", :owner_id => 1)
 # puts c
 # p Cat.all
 
-# c.save! # create
+c.create
 #
-p Cat.all
-p Cat.find(10)
+# p Cat.all
+# p Cat.find(1)
 #
 #
 # c.save # update
