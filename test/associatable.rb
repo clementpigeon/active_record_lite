@@ -10,15 +10,6 @@ class House < SQLObject
   my_attr_accessible(:id, :address, :house_id)
 end
 
-
-class Human < SQLObject
-  set_table_name("humans")
-  my_attr_accessible(:id, :fname, :lname, :house_id)
-
-  # has_many :cats, :foreign_key => :owner_id
-  belongs_to :house
-end
-
 class Cat < SQLObject
   set_table_name("cats")
   my_attr_accessible(:id, :name, :owner_id)
@@ -27,9 +18,31 @@ class Cat < SQLObject
   # has_one_through :house, :human, :house
 end
 
-h1 = Human.all.first
-puts h1.house
 
+class Human < SQLObject
+  set_table_name("humans")
+  my_attr_accessible(:id, :fname, :lname, :house_id)
+
+  belongs_to :house
+  has_many :cats, :foreign_key => :owner_id
+
+end
+
+class Cat < SQLObject
+  set_table_name("cats")
+  my_attr_accessible(:id, :name, :owner_id)
+
+  belongs_to :human, :class_name => "Human", :primary_key => :id, :foreign_key => :owner_id
+  # has_one_through :house, :human, :house
+end
+
+h1 = Human.all.first
+# puts h1.house
+h1
+cat1 = Cat.all.first
+cat1.owner_id = 2
+cat1.save
+p cat1.human
 
 
 

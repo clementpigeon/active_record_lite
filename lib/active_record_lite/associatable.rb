@@ -29,7 +29,7 @@ class BelongsToAssocParams < AssocParams
     end
 
     if settings[:foreign_key]
-      @foreign_key = settings[:primary_key]
+      @foreign_key = settings[:foreign_key]
     else
       @foreign_key = association_name.to_s + '_id'
     end
@@ -44,7 +44,33 @@ class BelongsToAssocParams < AssocParams
 end
 
 class HasManyAssocParams < AssocParams
-  def initialize(name, params, self_class)
+
+  attr_accessor :other_class_name, :other_class_name, :primary_key, :foreign_key, :other_class, :other_table_name
+
+  def initialize(association_name, settings, self_class)
+
+    if settings[:class_name]
+      @other_class_name = settings[:class_name]
+    else
+      singular = ActiveSupport::Inflector.singularize(association_name)
+      @other_class_name = ActiveSupport::Inflector.camelize(singular)
+    end
+
+    if settings[:primary_key]
+      @primary_key = settings[:primary_key]
+    else
+      @primary_key = 'id'
+    end
+
+    if settings[:foreign_key]
+      @foreign_key = settings[:foreign_key]
+    else
+      @foreign_key = ActiveSupport::Inflector.underscore(self_class) + '_id'
+    end
+
+    @other_class = ActiveSupport::Inflector.constantize(@other_class_name)
+    @other_table_name = @other_class.table_name
+
   end
 
   def type
@@ -72,6 +98,25 @@ module Associatable
   end
 
   def has_many(name, params = {})
+    aps = HasManyAssocParams.new(name, params, self)
+
+    define_method(name) do
+      query = "SELECT #{aps.other_table_name}.*
+      FROM #{aps.other_table_name} JOIN #{self.class.table_name}
+      ON #{aps.other_table_name}.#{aps.foreign_key} = #{self.class.table_name}.#{aps.primary_key}
+      WHERE #{self.class.table_name}.#{aps.primary_key} = ?"
+
+
+      rows = DBConnection.execute(<<-SQL, id)
+      SELECT #{aps.other_table_name}.*
+      FROM #{aps.other_table_name} JOIN #{self.class.table_name}
+      ON #{aps.other_table_name}.#{aps.foreign_key} = #{self.class.table_name}.#{aps.primary_key}
+      WHERE #{self.class.table_name}.#{aps.primary_key} = ?
+       SQL
+      aps.other_class.parse_all(rows)
+    end
+
+
   end
 
   def has_one_through(name, assoc1, assoc2)

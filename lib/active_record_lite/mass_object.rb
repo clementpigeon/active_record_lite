@@ -2,7 +2,6 @@
 class Object
  def self.new_attr_accessor(attr_name)
    # puts "setting #{attr_name} as an attr_accessor on #{self}"
-
    define_method(attr_name) do
      syn_name = ('@' + attr_name.to_s).to_sym
       instance_variable_get(syn_name)
