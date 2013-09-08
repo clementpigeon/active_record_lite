@@ -15,28 +15,12 @@ class BelongsToAssocParams < AssocParams
   attr_accessor :other_class_name, :other_class_name, :primary_key, :foreign_key, :other_class, :other_table_name
 
   def initialize(association_name, settings)
-
-    if settings[:class_name]
-      @other_class_name = settings[:class_name]
-    else
-      @other_class_name = ActiveSupport::Inflector.camelize(association_name)
-    end
-
-    if settings[:primary_key]
-      @primary_key = settings[:primary_key]
-    else
-      @primary_key = 'id'
-    end
-
-    if settings[:foreign_key]
-      @foreign_key = settings[:foreign_key]
-    else
-      @foreign_key = association_name.to_s + '_id'
-    end
+    @other_class_name = settings[:class_name] || ActiveSupport::Inflector.camelize(association_name)
+    @primary_key = settings[:primary_key] || 'id'
+    @foreign_key = settings[:foreign_key] || association_name.to_s + '_id'
 
     @other_class = ActiveSupport::Inflector.constantize(@other_class_name)
     @other_table_name = @other_class.table_name
-
   end
 
   def type
@@ -56,21 +40,10 @@ class HasManyAssocParams < AssocParams
       @other_class_name = ActiveSupport::Inflector.camelize(singular)
     end
 
-    if settings[:primary_key]
-      @primary_key = settings[:primary_key]
-    else
-      @primary_key = 'id'
-    end
-
-    if settings[:foreign_key]
-      @foreign_key = settings[:foreign_key]
-    else
-      @foreign_key = ActiveSupport::Inflector.underscore(self_class) + '_id'
-    end
-
+    @primary_key = settings[:primary_key] || 'id'
+    @foreign_key = settings[:foreign_key] || ActiveSupport::Inflector.underscore(self_class) + '_id'
     @other_class = ActiveSupport::Inflector.constantize(@other_class_name)
     @other_table_name = @other_class.table_name
-
   end
 
   def type
