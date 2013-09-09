@@ -4,6 +4,6 @@ class MyMassObject < MassObject
   my_attr_accessible(:x, :y)
 end
 
-obj = MyMassObject.new(:x => :x_val, :y => :y_val)
+p obj = MyMassObject.new(:x => :x_val, :y => :y_val)
 
 

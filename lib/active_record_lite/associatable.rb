@@ -18,9 +18,6 @@ class BelongsToAssocParams < AssocParams
     @other_class_name = settings[:class_name] || ActiveSupport::Inflector.camelize(association_name)
     @primary_key = settings[:primary_key] || 'id'
     @foreign_key = settings[:foreign_key] || association_name.to_s + '_id'
-
-    @other_class = ActiveSupport::Inflector.constantize(@other_class_name)
-    @other_table_name = @other_class.table_name
   end
 
   def type
@@ -58,22 +55,28 @@ module Associatable
   def belongs_to(name, params = {})
     aps = BelongsToAssocParams.new(name, params)
 
+    puts "belongs to macro"
     define_method(name) do
 
+      other_class = ActiveSupport::Inflector.constantize(aps.other_class_name)
+      other_table_name = other_class.table_name
+
+      puts "belongs to method"
       result = DBConnection.execute(<<-SQL, id)
-      SELECT #{aps.other_table_name}.*
-      FROM #{aps.other_table_name} JOIN #{self.class.table_name}
-      ON #{aps.other_table_name}.#{aps.primary_key} = #{self.class.table_name}.#{aps.foreign_key}
+      SELECT #{other_table_name}.*
+      FROM #{other_table_name} JOIN #{self.class.table_name}
+      ON #{other_table_name}.#{aps.primary_key} = #{self.class.table_name}.#{aps.foreign_key}
       WHERE #{self.class.table_name}.#{aps.primary_key} = ?
       SQL
-      aps.other_class.parse_all(result).first
+      other_class.parse_all(result).first
     end
   end
 
   def has_many(name, params = {})
     aps = HasManyAssocParams.new(name, params, self)
-
+    puts "has many macro"
     define_method(name) do
+
       query = "SELECT #{aps.other_table_name}.*
       FROM #{aps.other_table_name} JOIN #{self.class.table_name}
       ON #{aps.other_table_name}.#{aps.foreign_key} = #{self.class.table_name}.#{aps.primary_key}

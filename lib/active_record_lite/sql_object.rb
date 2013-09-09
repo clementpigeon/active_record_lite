@@ -5,27 +5,18 @@ require_relative './searchable'
 require 'active_support/inflector'
 require 'debugger'
 
-
-
 class SQLObject < MassObject
 
   extend Searchable
   extend Associatable
 
   def self.set_table_name(table_name)
-    # let the user specify the table on which to execute queries for this clas.
-    # We should store the table name in a class instance variable.
     @table_name = table_name
   end
 
   def self.table_name
-    if @table_name
-      return @table_name
-    else
-      model_name = ActiveSupport::Inflector.underscore(self.superclass.to_s)
-      model_name = ActiveSupport::Inflector.pluralize(model_name)
-      return model_name
-    end
+    return @table_name if @table_name
+    self.to_s.underscore.pluralize
   end
 
   def self.all
@@ -58,14 +49,15 @@ class SQLObject < MassObject
   private
 
   def create
-    attributes = self.class.accessible_attributes
-    attributes = attributes.dup
-    attributes.delete(:id)
-    attr_list = attributes.join(', ')
-    question_marks = Array.new(attributes.count) {'?'}.join(', ')
-    values_list = attributes.map { |attr| self.send(attr) }
+    attributes = self.class.attributes
 
-    result = DBConnection.execute(<<-SQL, *values_list)
+    attr_list = attributes.join(', ')
+
+    values = attributes_values
+
+    question_marks = Array.new(attributes.count) {'?'}.join(', ')
+
+    result = DBConnection.execute(<<-SQL, *values)
       INSERT INTO #{self.class.table_name} (#{attr_list})
       VALUES (#{question_marks})
     SQL
@@ -74,14 +66,21 @@ class SQLObject < MassObject
   end
 
   def update
-    # debugger
-    attributes = self.class.accessible_attributes
+    attributes = self.class.attributes
+
+    values = attributes_values
+
     set_line = attributes.map{ |attr| "#{attr} = ?" }.join(', ')
-    values_list = attributes.map { |attr| self.send(attr) }
 
-    query = "UPDATE #{self.class.table_name} SET " + set_line + " WHERE id = #{id}"
+    result = DBConnection.execute(<<-SQL, *values)
+      UPDATE #{self.class.table_name}
+      SET #{set_line}
+      WHERE id = #{id}
+    SQL
+  end
 
-    result = DBConnection.execute(query, *values_list)
+  def attributes_values
+    self.class.attributes.map { |attr| self.send(attr) }
   end
 
 end
