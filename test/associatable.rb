@@ -9,6 +9,7 @@ class Cat < SQLObject
   set_table_name("cats")
   my_attr_accessible(:id, :name, :owner_id)
 
+  # belongs_to :human, :primary_key => :id, :foreign_key => :owner_id
   belongs_to :human, :class_name => "Human", :primary_key => :id, :foreign_key => :owner_id
   # has_one_through :house, :human, :house
 end
@@ -29,12 +30,15 @@ end
 #
 #
 #
+p Human.find(1)
 cat = Cat.find(1)
+cat.owner_id = 1
+cat.save
 p cat
 p cat.human
-
-human = Human.find(1)
-p human.cats
-p human.house
+#
+# human = Human.find(1)
+# p human.cats
+# p human.house
 
 # p cat.house

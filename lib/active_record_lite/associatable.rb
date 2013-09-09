@@ -4,6 +4,7 @@ require_relative './db_connection.rb'
 
 class AssocParams
   def other_class
+
   end
 
   def other_table
@@ -15,7 +16,7 @@ class BelongsToAssocParams < AssocParams
   attr_accessor :other_class_name, :other_class_name, :primary_key, :foreign_key, :other_class, :other_table_name
 
   def initialize(association_name, settings)
-    @other_class_name = settings[:class_name] || ActiveSupport::Inflector.camelize(association_name)
+    @other_class_name = settings[:class_name] || association_name.to_s.camelize
     @primary_key = settings[:primary_key] || 'id'
     @foreign_key = settings[:foreign_key] || association_name.to_s + '_id'
   end
@@ -30,12 +31,15 @@ class HasManyAssocParams < AssocParams
 
   def initialize(association_name, settings, self_class)
 
-    if settings[:class_name]
-      @other_class_name = settings[:class_name]
-    else
-      singular = ActiveSupport::Inflector.singularize(association_name)
-      @other_class_name = ActiveSupport::Inflector.camelize(singular)
-    end
+    # if settings[:class_name]
+    #   @other_class_name = settings[:class_name]
+    # else
+    #   # singular = ActiveSupport::Inflector.singularize(association_name)
+    #   # @other_class_name = ActiveSupport::Inflector.camelize(singular)
+    #   @other_class_name = association_name.to_s.singularize.camelize
+    # end
+
+    @other_class_name = settings[:class_name] || association_name.to_s.singularize.camelize
 
     @primary_key = settings[:primary_key] || 'id'
     @foreign_key = settings[:foreign_key] || ActiveSupport::Inflector.underscore(self_class) + '_id'
@@ -55,13 +59,10 @@ module Associatable
   def belongs_to(name, params = {})
     aps = BelongsToAssocParams.new(name, params)
 
-    puts "belongs to macro"
     define_method(name) do
-
-      other_class = ActiveSupport::Inflector.constantize(aps.other_class_name)
+      other_class = aps.other_class_name.constantize
       other_table_name = other_class.table_name
 
-      puts "belongs to method"
       result = DBConnection.execute(<<-SQL, id)
       SELECT #{other_table_name}.*
       FROM #{other_table_name} JOIN #{self.class.table_name}
@@ -74,14 +75,8 @@ module Associatable
 
   def has_many(name, params = {})
     aps = HasManyAssocParams.new(name, params, self)
-    puts "has many macro"
+
     define_method(name) do
-
-      query = "SELECT #{aps.other_table_name}.*
-      FROM #{aps.other_table_name} JOIN #{self.class.table_name}
-      ON #{aps.other_table_name}.#{aps.foreign_key} = #{self.class.table_name}.#{aps.primary_key}
-      WHERE #{self.class.table_name}.#{aps.primary_key} = ?"
-
 
       rows = DBConnection.execute(<<-SQL, id)
       SELECT #{aps.other_table_name}.*

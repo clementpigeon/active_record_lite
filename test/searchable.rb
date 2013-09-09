@@ -6,7 +6,7 @@ cats_db_file_name =
 DBConnection.open(cats_db_file_name)
 
 class Cat < SQLObject
-  set_table_name("cats")
+  # set_table_name("cats")
   my_attr_accessible(:id, :name, :owner_id)
 end
 
@@ -15,7 +15,5 @@ class Human < SQLObject
   my_attr_accessible(:id, :fname, :lname, :house_id)
 end
 
-# p Cat.all.count
-p Cat.where(:name => "dinner", :owner_id => 92)
-# p Cat.where(:name => "Gizmo").count
-# p Human.where(:fname => "Matt", :house_id => 1)
+p Cat.where(:name => "jean")
+p Human.where(:fname => "Matt", :house_id => 1)
