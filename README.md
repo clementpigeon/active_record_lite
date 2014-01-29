@@ -1,1 +1,1 @@
-THIS README INTENTIONALLY LEFT BLANK
+Recreating basic Active Records functionality using meta-programming.
